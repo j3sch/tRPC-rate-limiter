@@ -105,4 +105,4 @@ Take a look at this [guide](https://express-rate-limit.mintlify.app/guides/creat
 
 ## Credits
 
-The `trpc-rate-limiter` project is a fork of [hono-rate-limiter](https://github.com/honojs/hono-rate-limiter), adapted specifically for tRPC integration. The original `hono-rate-limiter` project was itself inspired by [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit).
+The `trpc-rate-limiter` project is a fork of [hono-rate-limiter](https://github.com/honojs/hono-rate-limiter), adapted for tRPC integration. The original `hono-rate-limiter` project was inspired by [express-rate-limit](https://github.com/express-rate-limit/express-rate-limit).
