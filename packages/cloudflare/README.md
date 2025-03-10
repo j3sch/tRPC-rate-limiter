@@ -1,6 +1,6 @@
 # <div align="center">`@trpc-rate-limiter/cloudflare`</div>
 
-This package includes [`WorkersKV`](https://developers.cloudflare.com/kv/) and [Durable Object](https://developers.cloudflare.com/durable-objects/) store for the [`trpc-rate-limiter`](https://github.com/j3sch/tRPC-rate-limiter).
+This package includes [`WorkersKV`](https://developers.cloudflare.com/kv/) and [Durable Object](https://developers.cloudflare.com/durable-objects/) store for the [`@trpc-rate-limiter`](https://github.com/j3sch/tRPC-rate-limiter).
 
 ## Installation
 
@@ -129,4 +129,4 @@ Defaults to `hrl:`.
 
 ## Credits
 
-The `@trpc-rate-limiter/cloudflare` is based on the [@hono-rate-limiter/cloudflare](https://github.com/rhinobase/hono-rate-limiter), adapted for tRPC integration.
+The `@trpc-rate-limiter/cloudflare` is based on the [@hono-rate-limiter/cloudflare](https://github.com/rhinobase/hono-rate-limiter) store.
