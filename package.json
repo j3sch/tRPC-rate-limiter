@@ -1,5 +1,5 @@
 {
-  "name": "@hono-rate-limiter/source",
+  "name": "@trpc-rate-limiter/source",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
@@ -10,6 +10,7 @@
   "private": true,
   "dependencies": {
     "@hono/node-server": "^1.11.1",
+    "@trpc/server": "^10.45.2",
     "@vercel/kv": "^1.0.1",
     "hono": "^4.3.7"
   },

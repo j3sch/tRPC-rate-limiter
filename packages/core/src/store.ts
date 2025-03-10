@@ -1,10 +1,4 @@
-import type { Env, Input } from "hono/types";
-import type {
-  ClientRateLimitInfo,
-  ConfigType,
-  Store,
-  WSConfigType,
-} from "./types";
+import type { ClientRateLimitInfo, InitStoreOptions, Store } from './types'
 
 /**
  * The record that stores information about a client - namely, how many times
@@ -12,23 +6,18 @@ import type {
  *
  * Similar to `ClientRateLimitInfo`, except `resetTime` is a compulsory field.
  */
-type Client = Required<ClientRateLimitInfo>;
+type Client = Required<ClientRateLimitInfo>
 
 /**
  * A `Store` that stores the hit count for each client in memory.
  *
  * @public
  */
-export class MemoryStore<
-  E extends Env = Env,
-  P extends string = string,
-  I extends Input = Input,
-> implements Store<E, P, I>
-{
+export class MemoryStore implements Store {
   /**
    * The duration of time before which all hit counts are reset (in milliseconds).
    */
-  #windowMs!: number;
+  #windowMs!: number
 
   /**
    * These two maps store usage (requests) and reset time by key (for example, IP
@@ -40,35 +29,35 @@ export class MemoryStore<
    * left in `previous`, i.e., those that have not made any recent requests, are
    * known to be expired and can be deleted in bulk.
    */
-  previous = new Map<string, Client>();
-  current = new Map<string, Client>();
+  previous = new Map<string, Client>()
+  current = new Map<string, Client>()
 
   /**
    * A reference to the active timer.
    */
   // biome-ignore lint/suspicious/noExplicitAny: Deno is giving issue with NodeJS.Timeout
-  interval?: any;
+  interval?: any
 
   /**
    * Method that initializes the store.
    *
    * @param options {ConfigType | WSConfigType} - The options used to setup the middleware.
    */
-  init(options: ConfigType<E, P, I> | WSConfigType<E, P, I>): void {
+  init(options: InitStoreOptions): void {
     // Get the duration of a window from the options.
-    this.#windowMs = options.windowMs;
+    this.#windowMs = options.windowMs
 
     // Indicates that init was called more than once.
     // Could happen if a store was shared between multiple instances.
-    if (this.interval) clearInterval(this.interval);
+    if (this.interval) clearInterval(this.interval)
 
     // Reset all clients left in previous every `windowMs`.
     this.interval = setInterval(() => {
-      this.clearExpired();
-    }, this.#windowMs);
+      this.clearExpired()
+    }, this.#windowMs)
 
     // Cleaning up the interval will be taken care of by the `shutdown` method.
-    if (this.interval.unref) this.interval.unref();
+    if (this.interval.unref) this.interval.unref()
   }
 
   /**
@@ -80,31 +69,31 @@ export class MemoryStore<
    *
    * @public
    */
-  get(key: string): ClientRateLimitInfo | undefined {
-    return this.current.get(key) ?? this.previous.get(key);
+  async get(key: string): Promise<ClientRateLimitInfo | undefined> {
+    return this.current.get(key) ?? this.previous.get(key)
   }
 
+  /**
   /**
    * Method to increment a client's hit counter.
    *
    * @param key {string} - The identifier for a client.
    *
-   * @returns {ClientRateLimitInfo} - The number of hits and reset time for that client.
+   * @returns {Promise<ClientRateLimitInfo>} - The number of hits and reset time for that client.
    *
    * @public
    */
-  increment(key: string): ClientRateLimitInfo {
-    const client = this.getClient(key);
+  async increment(key: string): Promise<ClientRateLimitInfo> {
+    const client = this.getClient(key)
 
-    const now = Date.now();
+    const now = Date.now()
     if (client.resetTime.getTime() <= now) {
-      this.resetClient(client, now);
+      this.resetClient(client, now)
     }
 
-    client.totalHits++;
-    return client;
+    client.totalHits++
+    return client
   }
-
   /**
    * Method to decrement a client's hit counter.
    *
@@ -112,10 +101,10 @@ export class MemoryStore<
    *
    * @public
    */
-  decrement(key: string) {
-    const client = this.getClient(key);
+  async decrement(key: string) {
+    const client = this.getClient(key)
 
-    if (client.totalHits > 0) client.totalHits--;
+    if (client.totalHits > 0) client.totalHits--
   }
 
   /**
@@ -125,9 +114,9 @@ export class MemoryStore<
    *
    * @public
    */
-  resetKey(key: string) {
-    this.current.delete(key);
-    this.previous.delete(key);
+  async resetKey(key: string) {
+    this.current.delete(key)
+    this.previous.delete(key)
   }
 
   /**
@@ -135,9 +124,9 @@ export class MemoryStore<
    *
    * @public
    */
-  resetAll(): void {
-    this.current.clear();
-    this.previous.clear();
+  async resetAll(): Promise<void> {
+    this.current.clear()
+    this.previous.clear()
   }
 
   /**
@@ -146,9 +135,9 @@ export class MemoryStore<
    *
    * @public
    */
-  shutdown(): void {
-    clearInterval(this.interval);
-    void this.resetAll();
+  async shutdown(): Promise<void> {
+    clearInterval(this.interval)
+    void this.resetAll()
   }
 
   /**
@@ -163,11 +152,11 @@ export class MemoryStore<
    *
    * @return {Client} - The modified client that was passed in, to allow for chaining.
    */
-  private resetClient(client: Client, now = Date.now()): Client {
-    client.totalHits = 0;
-    client.resetTime.setTime(now + this.#windowMs);
+  private resetClient(client: Client, now: number = Date.now()): Client {
+    client.totalHits = 0
+    client.resetTime.setTime(now + this.#windowMs)
 
-    return client;
+    return client
   }
 
   /**
@@ -180,24 +169,24 @@ export class MemoryStore<
    */
   private getClient(key: string): Client {
     // If we already have a client for that key in the `current` map, return it.
-    const currentKey = this.current.get(key);
-    if (currentKey) return currentKey;
+    const currentKey = this.current.get(key)
+    if (currentKey) return currentKey
 
-    let client: Client;
-    const previousKey = this.previous.get(key);
+    let client: Client
+    const previousKey = this.previous.get(key)
     if (previousKey) {
       // If it's in the `previous` map, take it out
-      client = previousKey;
-      this.previous.delete(key);
+      client = previousKey
+      this.previous.delete(key)
     } else {
       // Finally, if we don't have an existing entry for this client, create a new one
-      client = { totalHits: 0, resetTime: new Date() };
-      this.resetClient(client);
+      client = { totalHits: 0, resetTime: new Date() }
+      this.resetClient(client)
     }
 
     // Make sure the client is bumped into the `current` map, and return it.
-    this.current.set(key, client);
-    return client;
+    this.current.set(key, client)
+    return client
   }
 
   /**
@@ -207,9 +196,9 @@ export class MemoryStore<
    */
   private clearExpired(): void {
     // At this point, all clients in previous are expired
-    this.previous = this.current;
-    this.current = new Map();
+    this.previous = this.current
+    this.current = new Map()
   }
 }
 
-export default MemoryStore;
+export default MemoryStore

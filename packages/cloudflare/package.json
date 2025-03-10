@@ -1,9 +1,10 @@
 {
-  "name": "@hono-rate-limiter/cloudflare",
+  "name": "@trpc-rate-limiter/cloudflare",
   "description": "Cloudflare stores and helper functions for hono-rate-limiter.",
   "version": "0.2.2",
   "license": "MIT",
   "keywords": [
+    "trpc",
     "hono",
     "cloudflare",
     "database",
@@ -13,24 +14,23 @@
     "rate-limiter",
     "honojs"
   ],
-  "homepage": "https://hono-rate-limiter.rhinobase.workers.dev",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rhinobase/hono-rate-limiter.git",
+    "url": "git+https://github.com/j3sch/tRPC-rate-limiter.git",
     "directory": "packages/cloudflare"
   },
   "bugs": {
-    "url": "https://github.com/rhinobase/hono-rate-limiter/issues"
+    "url": "https://github.com/j3sch/tRPC-rate-limiter/issues"
   },
   "peerDependencies": {
-    "@cloudflare/workers-types": "^4.20240529.0",
+    "@cloudflare/workers-types": "^4.20250303.0",
     "hono": "^4.4.8"
   },
   "devDependencies": {
-    "hono-rate-limiter": "^0.2.1"
+    "@trpc-rate-limiter/hono": "^0.2.1"
   },
   "types": "./index.cjs.d.ts"
 }

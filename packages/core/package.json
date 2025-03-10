@@ -1,9 +1,10 @@
 {
-  "name": "hono-rate-limiter",
-  "description": "Rate limit middleware for Hono.",
-  "version": "0.4.2",
+  "name": "@trpc-rate-limiter/hono",
+  "description": "TRPC Rate limiter for Hono.",
+  "version": "0.1.0",
   "license": "MIT",
   "keywords": [
+    "trpc",
     "hono",
     "api",
     "middleware",
@@ -12,17 +13,16 @@
     "rate-limiter",
     "honojs"
   ],
-  "homepage": "https://hono-rate-limiter.vercel.app",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rhinobase/hono-rate-limiter.git",
+    "url": "git+https://github.com/j3sch/tRPC-rate-limiter.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/rhinobase/hono-rate-limiter/issues"
+    "url": "https://github.com/j3sch/tRPC-rate-limiter/issues"
   },
   "peerDependencies": {
     "hono": "^4.1.1"

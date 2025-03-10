@@ -1,161 +1,86 @@
-import type { Env, Input, MiddlewareHandler } from "hono";
-import {
-  setDraft6Headers,
-  setDraft7Headers,
-  setRetryAfterHeader,
-} from "./headers";
-import MemoryStore from "./store";
-import type { ConfigType, GeneralConfigType, RateLimitInfo } from "./types";
-import { getKeyAndIncrement, initStore } from "./utils";
+import type { AnyRouter } from '@trpc/server'
+import { TRPCError } from '@trpc/server'
+import type { Context } from 'hono'
+import MemoryStore from './store'
+import type { RateLimiterOptions, TRPCPaths } from './types'
+import { getPath, getRateLimiterSettings, incrementKey, initStore } from './utils'
 
-/**
- *
- * Create an instance of rate-limiting middleware for Hono.
- *
- * @param config {ConfigType} - Options to configure the rate limiter.
- *
- * @returns - The middleware that rate-limits clients based on your configuration.
- *
- * @public
- */
-export function rateLimiter<
-  E extends Env = Env,
-  P extends string = string,
-  I extends Input = Input,
->(config: GeneralConfigType<ConfigType<E, P, I>>): MiddlewareHandler<E, P, I> {
-  const {
-    windowMs = 60_000,
-    limit = 5,
-    message = "Too many requests, please try again later.",
-    statusCode = 429,
-    standardHeaders = "draft-6",
-    requestPropertyName = "rateLimit",
-    requestStorePropertyName = "rateLimitStore",
-    skipFailedRequests = false,
-    skipSuccessfulRequests = false,
-    keyGenerator,
-    skip = () => false,
-    requestWasSuccessful = (c) => c.res.status < 400,
-    handler = async (c, _, options) => {
-      c.status(options.statusCode);
-
-      const responseMessage =
-        typeof options.message === "function"
-          ? await options.message(c)
-          : options.message;
-
-      if (typeof responseMessage === "string") return c.text(responseMessage);
-      return c.json(responseMessage);
-    },
-    store = new MemoryStore<E, P, I>(),
-  } = config;
-
-  const options = {
-    windowMs,
-    limit,
-    message,
-    statusCode,
-    standardHeaders,
-    requestPropertyName,
-    requestStorePropertyName,
-    skipFailedRequests,
-    skipSuccessfulRequests,
-    keyGenerator,
-    skip,
-    requestWasSuccessful,
-    handler,
-    store,
-  };
-
-  initStore(store, options);
-
-  return async (c, next) => {
-    // First check if we should skip the request
-    const isSkippable = await skip(c);
-
-    if (isSkippable) {
-      await next();
-      return;
+export function trpcRateLimiter<TRouter extends AnyRouter>({
+  config,
+  windowMs,
+  limit,
+  message = 'Too many requests, please try again later.',
+  keyGenerator = (c: Context, path: string) => {
+    const cfIp = c.req.header('cf-connecting-ip')
+    if (cfIp) {
+      return `${path}:${cfIp}`
     }
 
-    const { key, totalHits, resetTime } = await getKeyAndIncrement(
-      c,
-      keyGenerator,
-      store,
-    );
-
-    // Get the limit (max number of hits) for each client.
-    const retrieveLimit = typeof limit === "function" ? limit(c) : limit;
-    const _limit = await retrieveLimit;
-
-    // Define the rate limit info for the client.
-    const info: RateLimitInfo = {
-      limit: _limit,
-      used: totalHits,
-      remaining: Math.max(_limit - totalHits, 0),
-      resetTime,
-    };
-
-    // Set the rate limit information in the hono context
-    // @ts-expect-error TODO: need to figure this out
-    c.set(requestPropertyName, info);
-    // Set the data store in the hono context
-    // @ts-expect-error TODO: need to figure this out
-    c.set(requestStorePropertyName, {
-      getKey: store.get?.bind(store),
-      resetKey: store.resetKey.bind(store),
-    });
-
-    // Set the standardized `RateLimit-*` headers on the response object
-    if (standardHeaders && !c.finalized) {
-      if (standardHeaders === "draft-7") {
-        setDraft7Headers(c, info, windowMs);
-      } else {
-        // For true and draft-6
-        setDraft6Headers(c, info, windowMs);
-      }
+    const forwardedIp = c.req.header('x-forwarded-for')?.split(',')[0].trim()
+    return `${path}:${forwardedIp || 'unknown'}`
+  },
+  store = new MemoryStore(),
+  skip = () => false,
+}: RateLimiterOptions<TRouter>) {
+  return async (c: Context) => {
+    if ((windowMs || limit) && config) {
+      throw new Error("You can't use both `windowMs` and `limit` with `config` at the same time.")
     }
 
-    // If we are to skip failed/successfull requests, decrement the
-    // counter accordingly once we know the status code of the request
-    let decremented = false;
-    const decrementKey = async () => {
-      if (!decremented) {
-        await store.decrement(key);
-        decremented = true;
-      }
-    };
-
-    const shouldSkipRequest = async () => {
-      if (skipFailedRequests || skipSuccessfulRequests) {
-        const wasRequestSuccessful = await requestWasSuccessful(c);
-
-        if (
-          (skipFailedRequests && !wasRequestSuccessful) ||
-          (skipSuccessfulRequests && wasRequestSuccessful)
-        )
-          await decrementKey();
-      }
-    };
-
-    // If the client has exceeded their rate limit, set the Retry-After header
-    // and call the `handler` function.
-    if (totalHits > _limit) {
-      if (standardHeaders) {
-        setRetryAfterHeader(c, info, windowMs);
-      }
-
-      await shouldSkipRequest();
-      return handler(c, next, options);
+    const shouldSkip = await skip(c)
+    if (shouldSkip) {
+      return
     }
 
-    try {
-      await next();
-      await shouldSkipRequest();
-    } catch (error) {
-      if (skipFailedRequests) await decrementKey();
-    } finally {
-      if (!c.finalized) await decrementKey();
+    const path = getPath<TRPCPaths<TRouter>>(c)
+
+    const { currWindowMs, currLimit } =
+      (await getRateLimiterSettings<TRouter>({
+        path,
+        config,
+        windowMs,
+        limit,
+        c,
+      })) || {}
+
+    // either no rate limit settings for current path or invalid options
+    if (!currWindowMs || !currLimit) {
+      return
     }
-  };
+
+    initStore(store, {
+      windowMs: currWindowMs,
+    })
+
+    const key = await keyGenerator(c, path)
+    const { totalHits, resetTime } = await incrementKey(key, store)
+
+    if (totalHits > currLimit) {
+      const errorMessage = (async () => {
+        try {
+          if (typeof message === 'function') {
+            const result = await message(c)
+            return typeof result === 'string' ? result : JSON.stringify(result)
+          }
+          if (typeof message === 'string') {
+            return message
+          }
+          return JSON.stringify(message)
+        } catch (err) {
+          console.error('Error processing rate-limiter message:', err)
+          return 'Too many requests, please try again later.'
+        }
+      })()
+
+      const retryAfterSeconds = resetTime
+        ? Math.ceil((resetTime.getTime() - Date.now()) / 1000)
+        : undefined
+
+      throw new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: await errorMessage,
+        cause: { retryAfter: retryAfterSeconds },
+      })
+    }
+  }
 }

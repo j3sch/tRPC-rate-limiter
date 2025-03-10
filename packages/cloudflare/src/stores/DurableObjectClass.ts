@@ -1,44 +1,42 @@
-import { DurableObject } from "cloudflare:workers";
-import type { ClientRateLimitInfo } from "hono-rate-limiter";
+import { DurableObject } from 'cloudflare:workers'
+import type { ClientRateLimitInfo } from 'trpc-rate-limiter/hono'
 
 const initialState: ClientRateLimitInfo = {
   totalHits: 0,
-};
+}
 
 export class DurableObjectRateLimiter extends DurableObject {
   value() {
-    return this.ctx.storage.get<ClientRateLimitInfo>("value");
+    return this.ctx.storage.get<ClientRateLimitInfo>('value')
   }
 
   async update(hits: number, windowMs: number) {
-    let payload =
-      (await this.ctx.storage.get<ClientRateLimitInfo>("value")) ||
-      initialState;
+    let payload = (await this.ctx.storage.get<ClientRateLimitInfo>('value')) || initialState
 
     // Updating the payload
-    const resetTime = new Date(payload.resetTime ?? Date.now() + windowMs);
+    const resetTime = new Date(payload.resetTime ?? Date.now() + windowMs)
 
     payload = {
       totalHits: payload.totalHits + hits,
       resetTime,
-    };
-
-    // Updating the alarm
-    const currentAlarm = await this.ctx.storage.getAlarm();
-    if (currentAlarm == null) {
-      this.ctx.storage.setAlarm(resetTime.getTime());
     }
 
-    await this.ctx.storage.put("value", payload);
+    // Updating the alarm
+    const currentAlarm = await this.ctx.storage.getAlarm()
+    if (currentAlarm == null) {
+      this.ctx.storage.setAlarm(resetTime.getTime())
+    }
 
-    return payload;
+    await this.ctx.storage.put('value', payload)
+
+    return payload
   }
 
   async reset() {
-    await this.ctx.storage.put("value", initialState);
+    await this.ctx.storage.put('value', initialState)
   }
 
   override async alarm() {
-    await this.reset();
+    await this.reset()
   }
 }
