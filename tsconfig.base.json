@@ -16,7 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@trpc-rate-limiter/cloudflare": ["packages/cloudflare/src/index.ts"],
-      "trpc-rate-limiter/hono": ["packages/core/src/index.ts"]
+      "@trpc-rate-limiter/hono": ["packages/core/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

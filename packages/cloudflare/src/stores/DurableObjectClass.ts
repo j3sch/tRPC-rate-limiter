@@ -1,5 +1,5 @@
 import { DurableObject } from 'cloudflare:workers'
-import type { ClientRateLimitInfo } from 'trpc-rate-limiter/hono'
+import type { ClientRateLimitInfo } from '@trpc-rate-limiter/hono'
 
 const initialState: ClientRateLimitInfo = {
   totalHits: 0,

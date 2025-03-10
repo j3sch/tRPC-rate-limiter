@@ -1,4 +1,4 @@
-import type { ClientRateLimitInfo, InitStoreOptions, Store } from 'trpc-rate-limiter/hono'
+import type { ClientRateLimitInfo, InitStoreOptions, Store } from '@trpc-rate-limiter/hono'
 import type { Options } from '../types'
 
 export class WorkersKVStore implements Store {

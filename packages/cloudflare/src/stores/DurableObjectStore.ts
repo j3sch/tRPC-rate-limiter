@@ -1,5 +1,5 @@
 import type { DurableObjectNamespace } from '@cloudflare/workers-types'
-import type { ClientRateLimitInfo, InitStoreOptions, Store } from 'trpc-rate-limiter/hono'
+import type { ClientRateLimitInfo, InitStoreOptions, Store } from '@trpc-rate-limiter/hono'
 import type { Options } from '../types'
 import type { DurableObjectRateLimiter } from './DurableObjectClass'
 
@@ -57,7 +57,9 @@ export class DurableObjectStore implements Store {
    * @returns {ClientRateLimitInfo | undefined} - The number of hits and reset time for that client.
    */
   async get(key: string): Promise<ClientRateLimitInfo | undefined> {
-    return await this.namespace.get(this.prefixKey(key)).value()
+    return (await this.namespace.get(this.prefixKey(key)).value()) as
+      | ClientRateLimitInfo
+      | undefined
   }
 
   /**
@@ -68,7 +70,9 @@ export class DurableObjectStore implements Store {
    * @returns {ClientRateLimitInfo} - The number of hits and reset time for that client
    */
   async increment(key: string): Promise<ClientRateLimitInfo> {
-    return await this.namespace.get(this.prefixKey(key)).update(1, this.windowMs)
+    return (await this.namespace
+      .get(this.prefixKey(key))
+      .update(1, this.windowMs)) as ClientRateLimitInfo
   }
 
   /**
