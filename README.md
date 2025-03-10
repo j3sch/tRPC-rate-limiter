@@ -12,7 +12,7 @@ Rate limiting function for tRPC. For defining in the trpc middleware which produ
 
 > This library currently only works for the Hono backend framework. Please create an issue if you wish it for another framework.
 
-<video src="https://youtu.be/k722Aca4zp4" controls="controls" style="max-width: 100%;"></video>
+[![Video-Vorschau](images/trpc-rate-limiter-demo.png)](https://youtu.be/k722Aca4zp4)
 
 ## Installation
 
