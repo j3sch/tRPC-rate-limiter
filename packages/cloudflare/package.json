@@ -1,7 +1,7 @@
 {
   "name": "@trpc-rate-limiter/cloudflare",
   "description": "Cloudflare stores and helper functions for hono-rate-limiter.",
-  "version": "0.2.2",
+  "version": "0.1.0",
   "license": "MIT",
   "keywords": [
     "trpc",

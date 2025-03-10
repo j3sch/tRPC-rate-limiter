@@ -2,9 +2,9 @@
 
 <div align="center">
 
-[![Bundle Size](https://img.shields.io/bundlephobia/min/@trpc-rate-limiter/hono@0.1.0)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.0)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@trpc-rate-limiter/hono@0.1.0)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.0)
-[![license](https://img.shields.io/npm/l/@trpc-rate-limiter/hono@0.1.0)](LICENSE)
+[![Bundle Size](https://img.shields.io/bundlephobia/min/@trpc-rate-limiter/hono@0.1.2)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.2)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@trpc-rate-limiter/hono@0.1.2)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.2)
+[![license](https://img.shields.io/npm/l/@trpc-rate-limiter/hono@0.1.2)](LICENSE)
 
 </div>
 
@@ -12,7 +12,7 @@ Rate limiting function for tRPC. For defining in the trpc middleware which produ
 
 > This library currently only works for the Hono backend framework. Please create an issue if you wish it for another framework.
 
-[![Video-Vorschau](images/trpc-rate-limiter-demo.png)](https://youtu.be/k722Aca4zp4)
+[![Video-Vorschau](https://github.com/j3sch/tRPC-rate-limiter/blob/main/images/trpc-rate-limiter-demo.png)](https://youtu.be/k722Aca4zp4)
 
 ## Installation
 
