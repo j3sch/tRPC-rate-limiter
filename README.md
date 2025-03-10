@@ -31,7 +31,7 @@ import { trpcRateLimiter } from "@trpc-rate-limiter/hono";
 
 // You can define tiers for reuse
 export const RateLimitTier = {
-  BASIC: { windowMs: 60_000, limit: 5 },
+  BASIC: { windowMs: 60 * 1000, limit: 5 },
   STANDARD: { windowMs: 15 * 60 * 1000, limit: 10 },
   PREMIUM: { windowMs: 60 * 60 * 1000, limit: 30 },
 };
@@ -52,10 +52,6 @@ const rateLimiterMiddleware = t.middleware(async ({ ctx, next }) => {
     config: {
       "auth.signUp": {
         windowMs: 15 * MINUTE_IN_MS, // 15m
-        limit: 5,
-      },
-      "auth.signIn": {
-        windowMs: 5 * MINUTE_IN_MS, // 5m
         limit: 5,
       },
       "auth.requestPasswordReset": {
