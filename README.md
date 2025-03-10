@@ -2,9 +2,9 @@
 
 <div align="center">
 
-[![Bundle Size](https://img.shields.io/bundlephobia/min/@trpc-rate-limiter/hono@0.1.2)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.2)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@trpc-rate-limiter/hono@0.1.2)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.2)
-[![license](https://img.shields.io/npm/l/@trpc-rate-limiter/hono@0.1.2)](LICENSE)
+[![Bundle Size](https://img.shields.io/bundlephobia/min/@trpc-rate-limiter/hono@0.1.3)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.3)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@trpc-rate-limiter/hono@0.1.3)](https://bundlephobia.com/result?p=@trpc-rate-limiter/hono@0.1.3)
+[![license](https://img.shields.io/npm/l/@trpc-rate-limiter/hono@0.1.3)](LICENSE)
 
 </div>
 
