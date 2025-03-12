@@ -12,23 +12,28 @@ export class DurableObjectRateLimiter extends DurableObject {
 
   async update(hits: number, windowMs: number) {
     let payload = (await this.ctx.storage.get<ClientRateLimitInfo>('value')) || initialState
+    let alarmTimestamp = await this.ctx.storage.getAlarm()
+    const currentTime = Date.now()
 
-    // Updating the payload
-    const resetTime = new Date(payload.resetTime ?? Date.now() + windowMs)
+    if (!alarmTimestamp) {
+      alarmTimestamp = currentTime + windowMs
+      await this.ctx.storage.setAlarm(alarmTimestamp)
+    }
+
+    // if windowMs is changed while the alarm is active, the alarm will not be reset (bug)
+    if (alarmTimestamp <= currentTime) {
+      await this.reset()
+      payload = { totalHits: 0 }
+      alarmTimestamp = currentTime + windowMs
+      await this.ctx.storage.setAlarm(alarmTimestamp)
+    }
 
     payload = {
       totalHits: payload.totalHits + hits,
-      resetTime,
-    }
-
-    // Updating the alarm
-    const currentAlarm = await this.ctx.storage.getAlarm()
-    if (currentAlarm == null) {
-      this.ctx.storage.setAlarm(resetTime.getTime())
+      resetTime: new Date(alarmTimestamp),
     }
 
     await this.ctx.storage.put('value', payload)
-
     return payload
   }
 
